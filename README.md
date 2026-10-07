@@ -30,7 +30,7 @@ Darkstat est **nativement supporté par pfSense**, ce qui garantit une intégrat
 ## 🟧 Validation
 Accès à l’interface web :
 
-http://192.168.20.1:666 (192.168.20.1 in Bing)
+http://192.168.20.1:666 
 
 Darkstat affiche correctement :
 - les IP du LAN,
@@ -110,20 +110,8 @@ pfSense → **Firewall → NAT → Port Forward**
 ## 🟧 Validation
 Test depuis un réseau externe :
 
-http://192.168.20.183:8080 (192.168.20.183 in Bing)
+http://192.168.20.183:8080 
 
 Affichage de la page Apache2 → ✔️
-
----
-
-# 📸 Captures à fournir
-- Interface Darkstat  
-- NAT RDP DMZ  
-- NAT Apache DMZ  
-- Règles WAN associées  
-- Test RDP externe  
-- Test Apache externe  
-- Topologie DMZ / LAN / WAN  
-- ipconfig du serveur Windows DMZ  
 
 ---
