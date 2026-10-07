@@ -1,85 +1,87 @@
 # TP PfSense – DMZ & Addon  
 **Auteur : Charles BRIENNE**  
 **BTS SIO – SISR**  
-**Date: 11/10/2026**
+**Date : 11/10/2026**
 
 ---
 
 # 🧪 Mise en situation 1 — Monitoring du LAN
 
 ## 🎯 Objectif
-Le DSI souhaite monitorer le trafic du réseau LAN via une interface web accessible depuis le navigateur.  
-La solution doit être légère, simple à installer et compatible avec pfSense.
+Le DSI souhaite monitorer le trafic du réseau LAN via une interface web accessible depuis le navigateur.
 
 ## 🟦 Choix de la solution : Darkstat
-J’ai choisi **Darkstat**, un package pfSense permettant :
-
-- la capture du trafic réseau en temps réel,
+Darkstat permet :
+- la capture du trafic réseau,
 - l’analyse des flux par IP,
-- l’affichage via une interface web intégrée,
-- une installation simple et rapide.
-
-Darkstat est **nativement supporté par pfSense**, ce qui garantit une intégration propre et fiable.
+- une interface web simple et intégrée.
 
 ## 🟩 Installation
-1. pfSense → **System → Package Manager → Available Packages**  
-2. Recherche : `darkstat`  
-3. Installation  
-4. Activation via : **Services → Darkstat**
+1. pfSense → System → Package Manager → Available Packages  
+2. Installation de `darkstat`  
+3. Activation via Services → Darkstat
 
 ## 🟧 Validation
-Accès à l’interface web :
+Accès à l’interface web :  
+`http://192.168.20.1:666`
 
-http://192.168.20.1:666 
-
-Darkstat affiche correctement :
-- les IP du LAN,
-- les volumes entrants/sortants,
-- les connexions actives.
+### 📸 Interface Darkstat
+![Interface Darkstat](images/darkstat.png)  
+Affichage du trafic LAN en temps réel via Darkstat.
 
 ---
 
 # 🧪 Mise en situation 2 — Serveur Windows dans la DMZ accessible en RDP
 
 ## 🎯 Objectif
-Le DSI souhaite un serveur Windows dans la DMZ, accessible en RDP depuis Internet via un port WAN personnalisé.
-
-Schéma demandé :
-
-@WAN_PFSENSE:PORT_CHOISI → @WS_DMZ:3389
+Permettre l’accès RDP depuis Internet vers un serveur Windows placé dans la DMZ.
 
 ---
 
-# 🟦 Mise en place de la DMZ
+# 🟦 Configuration DMZ
 - Réseau DMZ : `192.168.6.0/24`  
-- IP pfSense DMZ : `192.168.6.1`  
-- Serveur Windows DMZ : `192.168.6.100`  
+- pfSense DMZ : `192.168.6.1`  
+- Windows Server DMZ : `192.168.6.100`  
 - RDP activé sur le serveur
 
 ---
 
 # 🟩 NAT WAN → DMZ (RDP)
 
-## 🔧 Configuration NAT
-pfSense → **Firewall → NAT → Port Forward**
-
+## 🔧 Règle NAT
 | Paramètre | Valeur |
 |----------|--------|
 | Interface | WAN |
 | Protocole | TCP |
-| Destination | WAN address |
 | Port WAN | `50000` |
-| Redirect target IP | `192.168.6.100` |
-| Redirect target port | `3389` |
+| Redirect IP | `192.168.6.100` |
+| Redirect port | `3389` |
 | Description | NAT RDP DMZ |
-| Add associated firewall rule | ✔️ |
 
-## 🟧 Validation
+### 📸 NAT RDP DMZ
+![NAT RDP DMZ](images/nat_rdp.png)  
+Règle NAT permettant l’accès RDP depuis Internet.
+
+---
+
+## 🔧 Règle Firewall WAN (auto‑générée)
+
+### 📸 Règle Firewall WAN – RDP
+![Firewall RDP](images/firewall_rdp.png)  
+Règle autorisant le flux RDP sur le port WAN 50000.
+
+---
+
+## 🟧 Validation externe
 Test depuis un réseau externe (4G) :
 
+```
 mstsc → 192.168.20.183:50000
+```
 
-Connexion réussie → accès au serveur Windows dans la DMZ.
+### 📸 Test RDP externe
+![Test RDP](images/test_rdp.png)  
+Connexion réussie au serveur Windows DMZ via RDP.
 
 ---
 
@@ -88,7 +90,9 @@ Connexion réussie → accès au serveur Windows dans la DMZ.
 ## 🎯 Objectif
 Accéder à une VM Apache2 située dans la DMZ depuis Internet via un port WAN dédié.
 
-## 🟦 Informations de la VM Apache
+---
+
+# 🟦 Informations VM Apache
 - IP Apache DMZ : `192.168.6.6`  
 - Service : Apache2 (port 80)
 
@@ -96,22 +100,72 @@ Accéder à une VM Apache2 située dans la DMZ depuis Internet via un port WAN d
 
 # 🟩 NAT WAN → DMZ (Apache)
 
-pfSense → **Firewall → NAT → Port Forward**
-
+## 🔧 Règle NAT
 | Paramètre | Valeur |
 |----------|--------|
 | Interface | WAN |
 | Protocole | TCP |
 | Port WAN | `8080` |
-| Redirect target IP | `192.168.6.6` |
-| Redirect target port | `80` |
+| Redirect IP | `192.168.6.6` |
+| Redirect port | `80` |
 | Description | NAT Apache DMZ |
 
-## 🟧 Validation
-Test depuis un réseau externe :
-
-http://192.168.20.183:8080 
-
-Affichage de la page Apache2 → ✔️
+### 📸 NAT Apache DMZ
+![NAT Apache](images/nat_apache.png)  
+Règle NAT permettant l’accès HTTP depuis Internet.
 
 ---
+
+## 🔧 Règle Firewall WAN (auto‑générée)
+
+### 📸 Règle Firewall WAN – Apache
+![Firewall Apache](images/firewall_apache.png)  
+Règle autorisant le flux HTTP sur le port WAN 8080.
+
+---
+
+## 🟧 Validation externe
+Test depuis un réseau externe :
+
+```
+`http://192.168.20.183:8080` 
+```
+
+### 📸 Test Apache externe
+![Test Apache](images/test_apache.png)  
+Affichage de la page Apache2 via le NAT WAN → DMZ.
+
+---
+
+# 🖥️ ipconfig du Windows Server DMZ
+
+### 📸 ipconfig Windows Server DMZ
+![ipconfig Windows](images/ipconfig_windows.png)  
+Le serveur Windows est bien dans la DMZ : 192.168.6.100.
+
+---
+
+# 🗺️ Topologie réseau
+
+### 📸 Topologie Proxmox
+![Topologie Proxmox](images/topologie_proxmox.png)  
+Vue des VM : pfSense, Windows Server DMZ, Apache DMZ.
+
+### 🗺️ Schéma réseau (Mermaid)
+
+```mermaid
+graph TD
+    WAN((WAN 192.168.20.183))
+    PF[pfsense]
+    LAN((LAN 192.168.20.0/24))
+    DMZ((DMZ 192.168.6.0/24))
+    WS[Windows Server<br>192.168.6.100]
+    AP[Apache2<br>192.168.6.6]
+
+    WAN -->|50000| PF
+    WAN -->|8080| PF
+    PF --> LAN
+    PF --> DMZ
+    DMZ --> WS
+    DMZ --> AP
+```
